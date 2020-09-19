@@ -18,3 +18,9 @@ $settings (setting name) (setting change) - Just use settings to see a list. The
 
 All moves are in standard algebraic notation. Please see this link:<br>
 https://en.wikipedia.org/wiki/Algebraic_notation_(chess)
+
+Dependencies:<br>
+lxml<br>
+discord.py<br>
+python-chess<br>
+All available in PyPi.

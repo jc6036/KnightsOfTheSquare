@@ -12,6 +12,7 @@
 
 import discord
 import io
+import os
 from lxml import etree
 import ChessEngine
 
@@ -61,6 +62,7 @@ def GetTokenFromFile():
     return root.text
 
 # Main Code
+####################
 client = discord.Client()
 
 @client.event
@@ -73,17 +75,47 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    # Parse the command out and run through conditional tree
+    # Command one: challenge. Start a new game; checks validity of
+    # given user id, then checks possibilty of first move before
+    # saving to file.
     if message.content[0] == delimiter:
-        if message.content.startswith(delimiter+'hello'):
-            await message.channel.send('Hello!')
+        if message.content.startswith(delimiter+'challenge'):
+            command_list = message.content.split(' ')
+            if discord.get_user(command_list[1]) == None:
+                await message.channel.send('That does not appear to be a valid user. Try again.')
+                return
+            else:
+                user_id1 = message.Author
+                user_id2 = command_list[1]
+                move = command_list[2]
+                engine = ChessEngine(UserID1=user_id1, UserID2=user_id2)
+                engine.NewGame()
+                move_result = engine.CheckMove(move)
+                if engine.CheckMove(move) != '':
+                    await message.channel.send(move_result+' Challenge failed.')
+                    return
+                else:
+                    engine.MakeMove(move)
+                    engine.SaveGameToFile()
+                    engine.ExportBoardImage() # Filename should be (GameID).png
+                    file = discord.File('./xml/'+engine.GameID+'.png',engine.GameID+'.png')
+                    embed = discord.Embed()
+                    embed.set_image(url="attachment://"+engine.GameID+'.png')
+                    await message.channel.send(content='Game on! Your turn, @'+user_id2, file=file, embed=embed)
+                    os.remove('./xml/'+engine.GameID+'.png')
+                    os.remove('./xml/'+engine.GameID+'.svg')
 
+        # Help command. Displays contents of help message.
+        # Also includes some hints on Standard Algebraic Notation.
         elif message.content.startswith(delimiter+'help'):
             await message.channel.send(help_msg)
 
+        # Used to make a clean exit for testing purposes.
+        # Will be removed upon completion.
         elif message.content.startswith(delimiter+'quit'):
             await message.channel.send('Shutting down. See ya!')
             await client.close()
+
         else:
             await message.channel.send('```Sorry, that command is not recognized. Use $help to see my commands.```')
 
