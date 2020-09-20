@@ -58,12 +58,16 @@ def GetTokenFromFile():
     token_file.close()
     return root.text
 
-def GenerateBoardImage():
+def GenerateBoardImage(board, game_id):
     # Use syscall to pipe our chess SVG into Inkscape, and convert to PNG
-    pass
+    boardsvg = chess.svg.board(board=board)
+    file = open(game_id+'.svg', "w")
+    file.write(boardsvg)
+    file.close()
+    subprocess.call(['inkscape', '--export-type=png', game_id+'.svg'])
 
 def GenerateGameID(user_id1, user_id2):
-    pass
+    return "testid"
 
 def UpdateGameList(user_id1, user_id2, game_id):
     pass
@@ -72,6 +76,17 @@ def SaveGameToFile(game_id, FEN):
     # Save FEN to game file.
     pass
 
+def EmbedBoardImage(embed, board, game_id):
+    # embed is a discord.Embed object. This func returns it, after adding image.
+    # board is the chessboard object, used to generate the image.
+    GenerateBoardImage(board, game_id)
+    file = discord.File('./xml/'+game_id+'.png',game_id+'.png') # Path, and Filename
+    embed.set_image(url='attachment://'+game_id+'.png')
+    return embed
+
+def CleanupBoardImage(game_id):
+    os.remove('./xml/'+game_id+'.png')
+    os.remove('./xml/'+game_id+'.svg')
 
 # Main Code
 ####################
@@ -92,8 +107,8 @@ async def on_message(message):
     # saving to file.
     if message.content[0] == delimiter:
         if message.content.startswith(delimiter+'challenge'):
-            command_list = message.content.split(' ')
-            if discord.get_user(command_list[1]) == None:
+            command_list = message.content.split()
+            if client.get_user(command_list[1]) == None:
                 await message.channel.send('That does not appear to be a valid user. Try again.')
                 return
             else:
@@ -106,20 +121,18 @@ async def on_message(message):
                     game_id = GenerateGameID(user_id1, user_id2)
                     UpdateGameList(user_id1, user_id2, game_id)
                     SaveGameToFile(game_id,board.fen(),1)
-                    GenerateBoardImage(board)
-                    file = discord.File('./xml/'+game_id+'.png',game_id+'.png') # Path, and Filename
+                    GenerateBoardImage(board, game_id)
                     embed = discord.Embed()
-                    embed.set_image(url='attachment://'+game_id+'.png')
+                    EmbedBoardImage(embed, board, game_id)
                     embed.title = 'Game on!'
                     await message.channel.send(content='Your turn, @'+user_id2, file=file, embed=embed)
-                    os.remove('./xml/'+game_id+'.png')
-                    os.remove('./xml/'+game_id+'.svg')
+                    CleanupBoardImage(game_id)
                 else:
                     await message.channel.send('That move is invalid. Challenge aborted.')
 
         # Help command. Displays contents of help message.
         # Also includes some hints on Standard Algebraic Notation.
-        if message.content.startswith(delimiter+'help'):
+        elif message.content.startswith(delimiter+'help'):
             embed = discord.Embed()
             embed.title = "Did anybody need my commands?"
             embed.description = help_msg
