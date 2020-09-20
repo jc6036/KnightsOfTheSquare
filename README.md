@@ -2,7 +2,7 @@
 A chess bot for discord. Play games with other members of your server using chess notation.
 
 Use this link to add the bot to your server<br>
-https://discord.com/api/oauth2/authorize?client_id=756870750878826535&permissions=93248&scope=bot
+https://discord.com/api/oauth2/authorize?client_id=756870750878826535&permissions=126016&scope=bot
 
 Commands:
 $challenge (User ID) (First Move) - Use this to start a match with someone. Keep track of the Game ID!<br>
