@@ -14,15 +14,13 @@ import discord
 import io
 import os
 from lxml import etree
-import ChessEngine
+import chess
 
 # Setup param vars that can be changed with commands later
 ####################
 delimiter = '$'
 help_msg = \
 """
-```
-Did somebody need my commands?
 $challenge (User ID) (First Move) - Use this to start a match with someone. Keep track of the Game ID!
 $move (Game ID) (notation) - Make a move if it's your turn.
 $takeback (Game ID) (move number) - Reverse the game to the given move number. The other player must accept.
@@ -49,7 +47,6 @@ O-O-O - Queenside Castle
 e8=Q - Promote pawn to queen
 
 If you're having trouble, google Standard Algebraic Notation and find a tutorial.
-```
 """
 
 # Function Defs
@@ -60,6 +57,21 @@ def GetTokenFromFile():
     root = tree.getroot()
     token_file.close()
     return root.text
+
+def GenerateBoardImage():
+    # Use syscall to pipe our chess SVG into Inkscape, and convert to PNG
+    pass
+
+def GenerateGameID(user_id1, user_id2):
+    pass
+
+def UpdateGameList(user_id1, user_id2, game_id):
+    pass
+
+def SaveGameToFile(game_id, FEN):
+    # Save FEN to game file.
+    pass
+
 
 # Main Code
 ####################
@@ -88,27 +100,30 @@ async def on_message(message):
                 user_id1 = message.Author
                 user_id2 = command_list[1]
                 move = command_list[2]
-                engine = ChessEngine(UserID1=user_id1, UserID2=user_id2)
-                engine.NewGame()
-                move_result = engine.CheckMove(move)
-                if engine.CheckMove(move) != '':
-                    await message.channel.send(move_result+' Challenge failed.')
-                    return
-                else:
-                    engine.MakeMove(move)
-                    engine.SaveGameToFile()
-                    engine.ExportBoardImage() # Filename should be (GameID).png
-                    file = discord.File('./xml/'+engine.GameID+'.png',engine.GameID+'.png')
+                board = chess.Board()
+                if board.parse_san(move) in board.legal_moves == True:
+                    board.push_san(move)
+                    game_id = GenerateGameID(user_id1, user_id2)
+                    UpdateGameList(user_id1, user_id2, game_id)
+                    SaveGameToFile(game_id,board.fen(),1)
+                    GenerateBoardImage(board)
+                    file = discord.File('./xml/'+game_id+'.png',game_id+'.png') # Path, and Filename
                     embed = discord.Embed()
-                    embed.set_image(url="attachment://"+engine.GameID+'.png')
-                    await message.channel.send(content='Game on! Your turn, @'+user_id2, file=file, embed=embed)
-                    os.remove('./xml/'+engine.GameID+'.png')
-                    os.remove('./xml/'+engine.GameID+'.svg')
+                    embed.set_image(url='attachment://'+game_id+'.png')
+                    embed.title = 'Game on!'
+                    await message.channel.send(content='Your turn, @'+user_id2, file=file, embed=embed)
+                    os.remove('./xml/'+game_id+'.png')
+                    os.remove('./xml/'+game_id+'.svg')
+                else:
+                    await message.channel.send('That move is invalid. Challenge aborted.')
 
         # Help command. Displays contents of help message.
         # Also includes some hints on Standard Algebraic Notation.
-        elif message.content.startswith(delimiter+'help'):
-            await message.channel.send(help_msg)
+        if message.content.startswith(delimiter+'help'):
+            embed = discord.Embed()
+            embed.title = "Did anybody need my commands?"
+            embed.description = help_msg
+            await message.channel.send(embed=embed)
 
         # Used to make a clean exit for testing purposes.
         # Will be removed upon completion.
@@ -117,6 +132,6 @@ async def on_message(message):
             await client.close()
 
         else:
-            await message.channel.send('```Sorry, that command is not recognized. Use $help to see my commands.```')
+            await message.channel.send('Sorry, that command is not recognized. Use $help to see my commands.')
 
 client.run(GetTokenFromFile())
