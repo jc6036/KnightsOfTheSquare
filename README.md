@@ -16,11 +16,12 @@ $ratio (User ID) - Gives the W/D/L ratio for the given user, in white and black.
 $moves (Game ID) - Gives a list of the moves in the game so far.<br>
 $settings (setting name) (setting change) - Just use settings to see a list. Then you can change settings such as delimiter.<br>
 
-All moves are in standard algebraic notation. Please see this link:<br>
-https://en.wikipedia.org/wiki/Algebraic_notation_(chess)
+All moves are in [standard algebraic notation.](https://en.wikipedia.org/wiki/Algebraic_notation_(chess))<br>
 
-Dependencies:<br>
+Package Dependencies:<br>
 lxml<br>
 discord.py<br>
 python-chess<br>
-All available in PyPi.
+
+Other Dependencies:<br>
+inkscape (for SVG rendering)<br>
