@@ -1,1 +1,1 @@
-# This is in the dir to make ChessEngine.py importable into the mainfile.
+# This is in the dir to make my class files importable

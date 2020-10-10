@@ -5,7 +5,6 @@
 ##############################
 import discord
 import io
-from lxml import etree
 import chess
 import KnightsFileManager
 import KnightsDebug
@@ -28,14 +27,24 @@ class KnightsOfTheSquare:
         self.board = chess.Board()
 
     def start():
+        """Starts the bot client"""
         manager = KnightsFileManager()
         client.run(manager.GetTokenFromFile())
 
     def GenerateGameID(user_id1, user_id2):
         return "testid"
 
-    def UpdateGameList(user_id1, user_id2, game_id):
-        pass
+    async def SendSimpleMessage(messagetxt, title):
+        """Send simple embed message with a title and body."""
+        embed = discord.Embed()
+        embed.title = title
+        embed.description = messagetxt
+        await message.channel.send(embed=embed)
+
+    async def Shutdown():
+        """Cleanly shuts down the bot for testing purposes."""
+        await message.channel.send('Shutting down. See ya!')
+        await client.close()
 
     @client.event
     async def on_ready():
@@ -57,10 +66,9 @@ class KnightsOfTheSquare:
         if message.author == client.user:
             return
 
-        # Command one: challenge. Start a new game; checks validity of
-        # given user id, then checks possibilty of first move before
-        # saving to file.
+        # $challenge - primary command to start a game
         if message.content[0] == delimiter:
+            
             if message.content.startswith(delimiter+'challenge'):
                 command_list = message.content.split()
                 if client.get_user(command_list[1]) == None: #TODO: Why the fuck does this not work?
@@ -85,19 +93,13 @@ class KnightsOfTheSquare:
                     else:
                         await message.channel.send('That move is invalid. Challenge aborted.')
 
-            # Help command. Displays contents of help message.
-            # Also includes some hints on Standard Algebraic Notation.
+            # $help - display help message in a nice looking embed.
             elif message.content.startswith(delimiter+'help'):
-                embed = discord.Embed()
-                embed.title = "Did anybody need my commands?"
-                embed.description = help_msg
-                await message.channel.send(embed=embed)
+                await SendSimpleMessage(KnightsStrings.help_msg, "Did anybody need my commands?")
 
-            # Used to make a clean exit for testing purposes.
-            # Will be removed upon completion.
+            # $quit - debug command, shuts down bot cleanly for faster testing.
             elif message.content.startswith(delimiter+'quit'):
-                await message.channel.send('Shutting down. See ya!')
-                await client.close()
+                await Shutdown()
 
             else:
                 await message.channel.send('Sorry, that command is not recognized. Use $help to see my commands.')

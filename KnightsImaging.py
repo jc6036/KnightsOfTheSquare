@@ -1,5 +1,6 @@
 import chess
 import discord.py
+import os
 
 class KnightsImaging:
     """Handles chessboard image generation and management."""

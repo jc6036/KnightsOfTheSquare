@@ -1,4 +1,6 @@
 # KnightsFileManager
+from lxml import etree
+import os
 
 class KnightsFileManager:
     """
@@ -16,4 +18,12 @@ class KnightsFileManager:
 
     def SaveGameToFile(game_id, FEN):
         """Saves FEN to the game's unique XML file."""
+        pass
+
+    def AddToGamelist(user_id1, user_id2, game_id):
+        """Add game to gamelist XML file"""
+        pass
+
+    def RemoveFromGamelist(game_id):
+        """Remove target game from XML file"""
         pass
